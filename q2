@@ -1,0 +1,47 @@
+import pandas as pd
+
+def is_consistent(h, instance):
+    """Check if hypothesis h is consistent with instance."""
+    return all(h[i] == '?' or h[i] == instance[i] for i in range(len(h)))
+
+def candidate_elimination(data):
+    num_features = data.shape[1] - 1  # Number of features excluding target
+    # Initialize S as the most specific hypothesis
+    S = ['∅'] * num_features
+    # Initialize G as the most general hypothesis
+    G = [['?'] * num_features]
+    
+    for index, row in data.iterrows():
+        instance, target = row[:-1], row[-1]  # Features and target label
+        
+        if target == 1:  # Positive example
+            # Update S: generalize S to satisfy this positive instance
+            S = [
+                '?' if S[i] == '?' or S[i] != instance[i] else instance[i]
+                for i in range(num_features)
+            ]
+            # Remove inconsistent hypotheses from G
+            G = [g for g in G if is_consistent(g, instance)]
+        
+        elif target == 0:  # Negative example
+            # Update G: specialize G to exclude this negative instance
+            G = [
+                g for g in G
+                for i in range(num_features)
+                if g[i] == '?' and all(is_consistent([val if j == i else g[j] for j in range(num_features)], instance) for val in set(data.iloc[:, i]) - {instance[i]})
+            ]
+            # Remove any hypotheses from G that are more specific than S
+            G = [g for g in G if not all(s == '?' or s == g[i] for i, s in enumerate(S))]
+    
+    return S, G
+
+# Load data from CSV file
+filename = "C:/Users/bsree/OneDrive/Documents/ML/can_alog.csv" # Replace with the path to your file
+data = pd.read_csv(filename)
+
+# Run Candidate-Elimination algorithm
+S, G = candidate_elimination(data)
+
+# Output the final hypothesis boundaries
+print("Specific Boundary (S):", S)
+print("General Boundary (G):", G)
