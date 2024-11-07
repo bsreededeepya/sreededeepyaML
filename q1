@@ -1,0 +1,27 @@
+import pandas as pd
+
+def find_s_algorithm(data):
+    """Find the most specific hypothesis using the FIND-S algorithm."""
+    hypothesis = None
+    
+    for _, row in data.iterrows():
+        if row.iloc[-1].strip().lower() == 'yes':
+            if hypothesis is None:
+                hypothesis = list(row.iloc[:-1])
+            else:
+                for i in range(len(hypothesis)):
+                    if hypothesis[i] != row.iloc[i]:
+                        hypothesis[i] = '?'
+    
+    if hypothesis is None:
+        raise ValueError("No positive examples in the data")
+    
+    return hypothesis
+
+# Load the training data from the CSV file using pandas
+filename = "C:/Users/bsree/OneDrive/Documents/ML/s_alog.csv"
+data = pd.read_csv(filename, header=None)
+
+# Run the FIND-S algorithm and output the hypothesis
+hypothesis = find_s_algorithm(data)
+print('The most specific hypothesis is:', hypothesis)
